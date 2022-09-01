@@ -1,0 +1,94 @@
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <script src="heatmap.js-2.0.5/build/heatmap.min.js"></script>
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+  <link rel="stylesheet" href="heatmap.css" />
+</head>
+
+<body style="margin:0; background-image: url('TODO: fill in the name of your screenshot here'); background-repeat: no-repeat;">
+  <canvas id="myCanvas" width="1920" height="1080" style="position: absolute; left: 0px; top: 0px">
+    <script>
+      // TODO: in the canvas properties two lines above, replace the width and height values with the original resolution of your screenshot
+      const CSV_NAME = 'TODO: fill in the name of your CSV file here';
+
+      // ajax GET request to load the csv file and launch the animated replay code
+      $(document).ready(function () {
+        $.ajax({
+          type: "GET",
+          url: CSV_NAME,
+          dataType: "text",
+          success: function (data) { processData(data); }
+        });
+      });
+
+      // this is just a function that slows processing down a bit to reduce computer lag
+      // you can safely ignore it
+      function sleep(ms) {
+        return new Promise(resolve => setTimeout(resolve, ms));
+      }
+
+      //actual process function
+      async function processData(allText) {
+        var canvas = document.getElementById("myCanvas");
+        var ctx = canvas.getContext("2d");
+
+        // split csv lines by return \n and by commas
+        var allTextLines = allText.split(/\r\n|\n/);
+
+        var dataX = [];
+        var dataY = [];
+        // this code iterates through each line of the csv and converts the coordinates to floats
+        for (let i = 1; i < allTextLines.length - 1; i++) {
+          var data = allTextLines[i].split(',');
+
+          var x = parseFloat(data[0].substring(1, data[0].length - 1));
+          var y = parseFloat(data[1].substring(1, data[1].length - 1));
+          dataX.push(x);
+          dataY.push(y);
+        }
+
+        // function for calculating the average of an array 
+        const average = array => array.reduce((a, b) => a + b) / array.length;
+        var activeCircles = [];
+        
+        // TODO: set true if you want the replay to have persistent circles, false otherwise
+        var isPersistent = true;  
+        for (let i = 0; i < dataX.length - 10; i++) {
+          // creates a circle for the average of 10 data points
+          var avgX = average(dataX.slice(i, i + 10));
+          var avgY = average(dataY.slice(i, i + 10));
+
+          if (isPersistent) {
+            // this code draws circles using ctx.arc(x, y, r, startAngle, endAngle) and ctx.stroke()
+            // where x, y describe the center point and r is the radius.
+            // you can also set the strokeStyle and lineWidth.
+            // feel free to play around with different values and different colors if you'd like :)
+            ctx.beginPath();
+            ctx.arc(avgX, avgY, 5, 0, 2 * Math.PI);
+            ctx.strokeStyle = "rgb(255,0,0)";
+            ctx.stroke();
+            await sleep(8);
+          } else {
+            // maintains a list of active circles so that only a max of 30 is drawn at any given time
+            if (activeCircles.length > 30) {
+              activeCircles.shift();
+            }
+            activeCircles.push([avgX, avgY])
+            activeCircles.forEach(function (c) {
+              ctx.beginPath();
+              ctx.arc(c[0], c[1], 5, 0, 2 * Math.PI);
+              ctx.strokeStyle = "rgb(255,0,0)";
+              ctx.stroke();
+            });
+            await sleep(8);
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+          }
+        }
+      }
+    </script>
+    </div>
+</body>
+
+</html>
