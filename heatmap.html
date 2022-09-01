@@ -1,0 +1,96 @@
+<!-- code from fall 2019 https://github.com/angelcch3/1300EyeTracking -->
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<script src="heatmap.js-2.0.5/build/heatmap.min.js"></script>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+<link rel="stylesheet" href="heatmap.css"/>
+</head>
+<script type="text/javascript">
+$(document).ready(function() {
+  var one = document.getElementById("one");
+  var two = document.getElementById("two");
+  style = window.getComputedStyle(one);
+  wdt = style.getPropertyValue("width");
+  // TODO: change the wdt variable here to what the original resolution of your screenshot (probably about 1920 if you had it fullscreen)
+  // wdt = 1920;
+  two.style.width = wdt;
+});
+
+// TODO: fill in your csv name here
+const CSV_NAME = '';
+
+//ajax GET request to load the csv file and launch the heatmap
+$(document).ready(function() {
+    $.ajax({
+        type: "GET",
+        url: CSV_NAME,
+        dataType: "text",
+        success: function(data) {processData(data);}
+    });
+});
+
+//Actual process function
+function processData(allText) {
+  //Split csv lines by return \n and by commas
+  var allTextLines = allText.split(/\r\n|\n/);
+  var datapoints = [];
+  
+  // allTextLines is an array that has each line from
+  // your data file as an element
+  //
+  // the first row is the header of the csv file
+  // and for every other line in the file we split by the commas like:
+  // 
+  // var headers = allTextLines[0].split(',');
+  //
+  // For each line we also strip out the extra quotes from
+  // the string and convert it into a float by using:
+  //
+  // var myfloat = parseFloat(mystring.substring(1, mystring.length-1));
+	// A heatmap data point looks like this object:
+  //  {
+  //    x: ?, // x coordinate of the data point, a float 
+  //    y: ?, // y coordinate of the data point, a float
+  //    value: 1 // leave at 1, but feel free to tweak for a hotter-looking heatmap
+  //  }
+  //
+  // The following code loops through the data and adds each data point in the 
+  // datapoints array, which is then plotted on the heatmap 
+  
+  for (let i = 1; i < allTextLines.length - 1; i++) {
+    var data = allTextLines[i].split(',');
+
+    var point = {
+      x: parseFloat(data[0].substring(1, data[0].length-1)),
+      y: parseFloat(data[1].substring(1, data[1].length-1)),
+      value: 1
+    };
+    datapoints.push(point);
+  }
+
+  //Creates a heatmap instance
+  var heatmapInstance = h337.create({
+      container: document.querySelector('.heatmap')
+  });
+
+  //Initializes a heatmap data object with the lines
+  //stack datapoints
+  var data = {
+    max: 10, // just sets the maximum value to be displayed as red in the heatmap
+    min: 0,
+    data: datapoints
+  };
+
+  //Displays heatmap
+  heatmapInstance.setData(data);
+}
+</script>
+<body style="margin:0">
+<h2>Heatmap</h2>
+<div id="one" class="heatmap" style="position: relative;">
+
+<img id="two" class="heatmap-canvas" id="heatmap-canvas" style="position: absolute; left: 0px; top: 0px" src="TODO: fill in the screenshot file name">
+</div>
+</body>
+</html>
